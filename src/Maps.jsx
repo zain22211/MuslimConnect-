@@ -5,12 +5,17 @@ import "./maps.css";
 import { useState, useEffect } from "react";
 
 const markerIcon = new L.Icon({
-  iconUrl: ("https://cdn4.iconfinder.com/data/icons/small-n-flat/24/map-marker-1024.png"),
-  iconSize: [35,45],
-  iconAnchor: [17,46]
+  iconUrl: "https://cdn4.iconfinder.com/data/icons/small-n-flat/24/map-marker-1024.png",
+  iconSize: [35, 45],
+  iconAnchor: [17, 46],
+});
 
-})
-// Helper component to dynamically update map center
+const userLocationIcon = new L.Icon({
+  iconUrl: "https://cdn4.iconfinder.com/data/icons/mix-popular-glyph/96/glyph-34-512.png", // Change to your custom icon for the user's location
+  iconSize: [40, 40], // Adjust the size if necessary
+  iconAnchor: [20, 40], // Adjust the anchor to center the icon
+});
+
 function ChangeView({ center }) {
   const map = useMap();
   map.setView(center);
@@ -44,55 +49,53 @@ function Maps() {
     }
   }, []);
 
-// Fetch Nearby Mosques (Trigger after a 3-second delay when userLocation updates)
-useEffect(() => {
-  const fetchNearbyMosques = async () => {
-    if (userLocation.latitude && userLocation.longitude) {
-      setIsLoading(true); // Start loading
-      try {
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=mosque&bounded=1&viewbox=${
-            userLocation.longitude - 0.05
-          },${userLocation.latitude + 0.05},${
-            userLocation.longitude + 0.05
-          },${userLocation.latitude - 0.05}`
-        );
+  // Fetch Nearby Mosques (Trigger after a 3-second delay when userLocation updates)
+  useEffect(() => {
+    const fetchNearbyMosques = async () => {
+      if (userLocation.latitude && userLocation.longitude) {
+        setIsLoading(true); // Start loading
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=json&q=mosque&bounded=1&viewbox=${
+              userLocation.longitude - 0.05
+            },${userLocation.latitude + 0.05},${
+              userLocation.longitude + 0.05
+            },${userLocation.latitude - 0.05}`
+          );
 
-        const data = await response.json();
-        setMosques(
-          data.map((mosque, index) => ({
-            geocode: [parseFloat(mosque.lat), parseFloat(mosque.lon)],
-            id: index + 2,
-            popUp: mosque.display_name || "Mosque",
-          }))
-        );
-      } catch (error) {
-        console.error("Error fetching nearby mosques:", error);
-      } finally {
-        setIsLoading(false); // End loading
+          const data = await response.json();
+          setMosques(
+            data.map((mosque, index) => ({
+              geocode: [parseFloat(mosque.lat), parseFloat(mosque.lon)],
+              id: index + 2,
+              popUp: mosque.display_name || "Mosque",
+            }))
+          );
+        } catch (error) {
+          console.error("Error fetching nearby mosques:", error);
+        } finally {
+          setIsLoading(false); // End loading
+        }
       }
-    }
-  };
+    };
 
-  // Set a timeout to delay the fetch by 3 seconds
-  const timeoutId = setTimeout(fetchNearbyMosques, 3000);
+    // Set a timeout to delay the fetch by 3 seconds
+    const timeoutId = setTimeout(fetchNearbyMosques, 3000);
 
-  // Cleanup to avoid memory leaks
-  return () => clearTimeout(timeoutId);
-}, [userLocation]);
+    // Cleanup to avoid memory leaks
+    return () => clearTimeout(timeoutId);
+  }, [userLocation]);
 
-  console.log(...mosques)
   // Combine User Location and Mosque Markers
   const marker = [
     {
       geocode: [userLocation.latitude, userLocation.longitude],
       id: 1,
       popUp: "Your Location!",
+      icon: userLocationIcon, // Set a different icon for user location
     },
     ...mosques, // Spread mosque data into markers
   ];
-
- // Ensure mosque data is properly fetched
 
   return (
     <MapContainer
@@ -112,11 +115,10 @@ useEffect(() => {
 
       {/* Render all markers */}
       {marker.map((marker) => (
-        <Marker key={marker.id} position={marker.geocode} icon={markerIcon}>
+        <Marker key={marker.id} position={marker.geocode} icon={marker.icon || markerIcon}>
           <Popup>{marker.popUp}</Popup>
         </Marker>
       ))}
-
     </MapContainer>
   );
 }
