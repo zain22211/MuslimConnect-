@@ -30,7 +30,7 @@ function Ui() {
 
   async function getTemp() {
     const data = await fetch(
-      `http://api.openweathermap.org/geo/1.0/direct?q=${idata}&limit=5&appid=e9f4acbbac24292004ee735d19323eb7`
+      `https://api.openweathermap.org/geo/1.0/direct?q=${idata}&limit=5&appid=e9f4acbbac24292004ee735d19323eb7`
     );
     const res = await data.json();
     console.log(res);
