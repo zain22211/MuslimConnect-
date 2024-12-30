@@ -20,7 +20,7 @@ function PrayerTimes({ City, Country, triggerPrayerTimes, setTriggerPrayerTimes 
   
     async function getNamazTime() {
       const data1 = await fetch(
-        `http://api.aladhan.com/v1/timingsByCity/${formattedDate}?city=${City}&country=${Country}`
+        `https://api.aladhan.com/v1/timingsByCity/${formattedDate}?city=${City}&country=${Country}`
       );
       const res = await data1.json();
       console.log(res);
